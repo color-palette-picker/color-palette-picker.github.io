@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+/* react-colorful overrides */
+.react-colorful {
+  width: 100% !important;
+  height: 160px !important;
+}
+
+.react-colorful__saturation {
+  border-radius: 6px 6px 0 0 !important;
+}
+
+.react-colorful__hue {
+  border-radius: 4px !important;
+  height: 12px !important;
+  margin-top: 8px;
+}
+
+.react-colorful__saturation-pointer,
+.react-colorful__hue-pointer {
+  width: 16px !important;
+  height: 16px !important;
+}
