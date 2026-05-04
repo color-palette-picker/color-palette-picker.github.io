@@ -9,9 +9,20 @@ interface ColorPickerPopoverProps {
   onClose: () => void
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 640)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
+
 export default function ColorPickerPopover({ color, onChange, onClose }: ColorPickerPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null)
   const [hexInput, setHexInput] = useState(color.slice(1).toUpperCase())
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setHexInput(color.slice(1).toUpperCase())
@@ -46,56 +57,71 @@ export default function ColorPickerPopover({ color, onChange, onClose }: ColorPi
     }
   }
 
+  const popoverStyle: React.CSSProperties = isMobile
+    ? { position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
+    : { position: 'absolute', bottom: '112px', left: '50%', transform: 'translateX(-50%)' }
+
   return (
-    <div
-      ref={popoverRef}
-      className="absolute bottom-28 left-1/2 z-50 rounded-2xl shadow-2xl p-4 flex flex-col gap-3"
-      style={{
-        transform: 'translateX(-50%)',
-        width: '212px',
-        background: 'rgba(20, 20, 24, 0.98)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255,255,255,0.08)',
-      }}
-      onClick={e => e.stopPropagation()}
-      onPointerDown={e => e.stopPropagation()}
-    >
-      <HexColorPicker color={color} onChange={onChange} />
+    <>
+      {/* Backdrop — mobile only, closes picker on tap */}
+      {isMobile && (
+        <div
+          className="fixed inset-0 z-40"
+          style={{ background: 'rgba(0,0,0,0.45)' }}
+          onPointerDown={() => onClose()}
+        />
+      )}
 
       <div
-        className="flex items-center gap-2 rounded-lg px-3 py-2"
-        style={{ background: 'rgba(255,255,255,0.06)' }}
-      >
-        <span className="text-sm font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>#</span>
-        <input
-          type="text"
-          value={hexInput}
-          onChange={handleHexInput}
-          onBlur={handleHexBlur}
-          className="flex-1 bg-transparent text-sm font-mono outline-none uppercase"
-          style={{ color: 'rgba(255,255,255,0.9)', caretColor: 'white' }}
-          maxLength={6}
-          spellCheck={false}
-        />
-        <div
-          className="w-5 h-5 rounded-full flex-shrink-0 ring-1 ring-white/20"
-          style={{ background: color }}
-        />
-      </div>
-
-      <button
-        onClick={() => onChange(generateRandomColor())}
-        className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-xs transition-colors"
+        ref={popoverRef}
+        className="z-50 rounded-2xl shadow-2xl p-4 flex flex-col gap-3"
         style={{
-          color: 'rgba(255,255,255,0.5)',
-          background: 'rgba(255,255,255,0.04)',
+          ...popoverStyle,
+          width: '212px',
+          background: 'rgba(20, 20, 24, 0.98)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.08)',
         }}
-        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+        onClick={e => e.stopPropagation()}
+        onPointerDown={e => e.stopPropagation()}
       >
-        <Shuffle className="w-3 h-3" />
-        Random
-      </button>
-    </div>
+        <HexColorPicker color={color} onChange={onChange} />
+
+        <div
+          className="flex items-center gap-2 rounded-lg px-3 py-2"
+          style={{ background: 'rgba(255,255,255,0.06)' }}
+        >
+          <span className="text-sm font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>#</span>
+          <input
+            type="text"
+            value={hexInput}
+            onChange={handleHexInput}
+            onBlur={handleHexBlur}
+            className="flex-1 bg-transparent text-sm font-mono outline-none uppercase"
+            style={{ color: 'rgba(255,255,255,0.9)', caretColor: 'white' }}
+            maxLength={6}
+            spellCheck={false}
+          />
+          <div
+            className="w-5 h-5 rounded-full flex-shrink-0 ring-1 ring-white/20"
+            style={{ background: color }}
+          />
+        </div>
+
+        <button
+          onClick={() => onChange(generateRandomColor())}
+          className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-xs transition-colors"
+          style={{
+            color: 'rgba(255,255,255,0.5)',
+            background: 'rgba(255,255,255,0.04)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+        >
+          <Shuffle className="w-3 h-3" />
+          Random
+        </button>
+      </div>
+    </>
   )
 }

@@ -24,7 +24,6 @@ export default function App() {
     window.history.replaceState(null, '', `#${encoded}`)
   }, [colors])
 
-  // Sync on hash change (browser back/forward)
   useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash.slice(1)
@@ -83,9 +82,10 @@ export default function App() {
 
   return (
     <div className="flex flex-col w-screen h-screen overflow-hidden" style={{ background: '#0d0d10' }}>
-      {/* Header */}
+
+      {/* ── Header ── */}
       <header
-        className="flex items-center justify-between px-6 flex-shrink-0"
+        className="flex items-center justify-between px-4 sm:px-6 flex-shrink-0"
         style={{
           height: '52px',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -93,58 +93,59 @@ export default function App() {
           backdropFilter: 'blur(8px)',
         }}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex gap-0.5 rounded-md overflow-hidden" style={{ width: 24, height: 24 }}>
-            {['#264653','#2a9d8f','#e9c46a','#e76f51'].map(c => (
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex gap-0.5 rounded-md overflow-hidden flex-shrink-0" style={{ width: 24, height: 24 }}>
+            {['#264653', '#2a9d8f', '#e9c46a', '#e76f51'].map(c => (
               <div key={c} style={{ flex: 1, background: c }} />
             ))}
           </div>
-          <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>
+          <span className="hidden sm:block text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>
             Color Palette Generator
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs mr-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <span className="hidden sm:block text-xs mr-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
             {colors.length} color{colors.length !== 1 ? 's' : ''}
           </span>
+
+          {/* Generate — icon-only on mobile */}
           <button
             onClick={randomizeAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors duration-150"
-            style={{
-              color: 'rgba(255,255,255,0.6)',
-              background: 'rgba(255,255,255,0.06)',
-            }}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm transition-colors duration-150 touch-manipulation"
+            style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.06)' }}
             onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+            aria-label="Generate new palette"
           >
-            <Shuffle className="w-3.5 h-3.5" />
-            Generate
+            <Shuffle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Generate</span>
           </button>
+
+          {/* Share */}
           <button
             onClick={shareUrl}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 touch-manipulation"
             style={{
               color: copied ? '#4ade80' : 'rgba(255,255,255,0.9)',
               background: copied ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.12)',
               border: '1px solid',
               borderColor: copied ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.12)',
             }}
-            onMouseEnter={e => {
-              if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.18)'
-            }}
-            onMouseLeave={e => {
-              if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
-            }}
+            onMouseEnter={e => { if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.18)' }}
+            onMouseLeave={e => { if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.12)' }}
+            aria-label="Copy shareable URL"
           >
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
-            {copied ? 'Copied!' : 'Share'}
+            {copied ? <Check className="w-3.5 h-3.5 flex-shrink-0" /> : <Share2 className="w-3.5 h-3.5 flex-shrink-0" />}
+            <span className="hidden sm:inline">{copied ? 'Copied!' : 'Share'}</span>
           </button>
         </div>
       </header>
 
-      {/* Palette */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* ── Palette ──
+          flex-col on mobile (horizontal strips stack vertically, scroll if many)
+          flex-row on desktop (vertical strips side by side)                      */}
+      <div className="flex flex-col sm:flex-row flex-1 overflow-y-auto sm:overflow-hidden">
         {colors.map((color, index) => (
           <ColorStrip
             key={index}
@@ -158,33 +159,72 @@ export default function App() {
           />
         ))}
 
-        {/* Add button */}
+        {/* ── Add Color button — desktop (right panel) ── */}
         <button
           onClick={addColor}
-          className="flex items-center justify-center flex-shrink-0 transition-colors duration-150"
+          className="hidden sm:flex flex-col items-center justify-center gap-3 flex-shrink-0 transition-colors duration-200 touch-manipulation"
           style={{
-            width: '52px',
-            background: 'rgba(255,255,255,0.03)',
-            borderLeft: '1px solid rgba(255,255,255,0.06)',
+            width: '96px',
+            borderLeft: '1px dashed rgba(255,255,255,0.15)',
+            background: 'rgba(255,255,255,0.02)',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
           aria-label="Add color"
         >
-          <Plus className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.4)' }} />
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200"
+            style={{
+              border: '2px dashed rgba(255,255,255,0.2)',
+              color: 'rgba(255,255,255,0.5)',
+            }}
+          >
+            <Plus className="w-5 h-5" />
+          </div>
+          <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Add Color
+          </span>
+        </button>
+
+        {/* ── Add Color button — mobile (bottom row) ── */}
+        <button
+          onClick={addColor}
+          className="flex sm:hidden flex-shrink-0 items-center justify-center gap-2.5 transition-colors duration-150 touch-manipulation"
+          style={{
+            height: '64px',
+            borderTop: '1px dashed rgba(255,255,255,0.15)',
+            background: 'rgba(255,255,255,0.02)',
+          }}
+          onTouchStart={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+          onTouchEnd={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+          aria-label="Add color"
+        >
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{
+              border: '2px dashed rgba(255,255,255,0.2)',
+              color: 'rgba(255,255,255,0.5)',
+            }}
+          >
+            <Plus className="w-4 h-4" />
+          </div>
+          <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Add Color
+          </span>
         </button>
       </div>
 
-      {/* Footer hint */}
+      {/* ── Footer hint ── */}
       <div
-        className="flex items-center justify-center flex-shrink-0 text-xs"
+        className="flex items-center justify-center flex-shrink-0 text-xs px-4 text-center"
         style={{
           height: '28px',
           color: 'rgba(255,255,255,0.2)',
           borderTop: '1px solid rgba(255,255,255,0.04)',
         }}
       >
-        Click any color to edit · Hover to copy or delete · Share button copies URL
+        <span className="hidden sm:block">Click any color to edit · Hover to copy or delete · Share button copies URL</span>
+        <span className="sm:hidden">Tap a color to edit · Share copies the URL</span>
       </div>
     </div>
   )

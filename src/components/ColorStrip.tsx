@@ -29,6 +29,9 @@ export default function ColorStrip({
   const { h, s, l } = hexToHsl(color)
   const showControls = isHovered || isActive
 
+  const bgControl = fg === '#ffffff' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)'
+  const bgControlHover = fg === '#ffffff' ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)'
+
   const copyHex = async (e: React.MouseEvent) => {
     e.stopPropagation()
     try {
@@ -47,42 +50,93 @@ export default function ColorStrip({
 
   return (
     <div
-      className="relative flex flex-col items-center justify-end pb-10 cursor-pointer select-none transition-[flex] duration-300 ease-in-out"
+      className="relative cursor-pointer select-none"
       style={{
         flex: '1 1 0',
         backgroundColor: color,
         minWidth: 0,
+        minHeight: '72px',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onActivate}
     >
-      {/* Top controls */}
+      {/* ── MOBILE: horizontal row, always-visible controls ── */}
+      <div className="flex sm:hidden absolute inset-0 items-center px-4 gap-3">
+        {/* Color info (tappable area to open picker) */}
+        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+          <span
+            className="text-sm font-mono font-semibold tracking-wide uppercase truncate"
+            style={{ color: fg }}
+          >
+            {color.toUpperCase()}
+          </span>
+          <span
+            className="text-xs font-mono truncate"
+            style={{ color: fg, opacity: 0.5 }}
+          >
+            {h}° {s}% {l}%
+          </span>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            className="p-2.5 rounded-xl touch-manipulation"
+            style={{ background: bgControl, color: fg }}
+            onClick={copyHex}
+            onTouchStart={e => (e.currentTarget.style.background = bgControlHover)}
+            onTouchEnd={e => (e.currentTarget.style.background = bgControl)}
+            aria-label="Copy hex"
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          </button>
+          {canDelete && (
+            <button
+              className="p-2.5 rounded-xl touch-manipulation"
+              style={{ background: bgControl, color: fg }}
+              onClick={e => { e.stopPropagation(); onDelete() }}
+              onTouchStart={e => (e.currentTarget.style.background = bgControlHover)}
+              onTouchEnd={e => (e.currentTarget.style.background = bgControl)}
+              aria-label="Delete color"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── DESKTOP: vertical column, hover-reveal controls ── */}
+
+      {/* Delete button — top center */}
       <div
-        className="absolute top-5 left-0 right-0 flex justify-center gap-2 transition-all duration-200"
-        style={{ opacity: showControls ? 1 : 0, transform: showControls ? 'translateY(0)' : 'translateY(-4px)' }}
+        className="hidden sm:flex absolute top-5 left-0 right-0 justify-center gap-2 transition-all duration-200"
+        style={{
+          opacity: showControls ? 1 : 0,
+          transform: showControls ? 'translateY(0)' : 'translateY(-4px)',
+        }}
       >
         {canDelete && (
           <button
             className="p-2 rounded-xl transition-colors duration-150"
-            style={{
-              background: fg === '#ffffff' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)',
-              color: fg,
-            }}
+            style={{ background: bgControl, color: fg }}
             onClick={e => { e.stopPropagation(); onDelete() }}
             aria-label="Delete color"
-            onMouseEnter={e => (e.currentTarget.style.background = fg === '#ffffff' ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)')}
-            onMouseLeave={e => (e.currentTarget.style.background = fg === '#ffffff' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)')}
+            onMouseEnter={e => (e.currentTarget.style.background = bgControlHover)}
+            onMouseLeave={e => (e.currentTarget.style.background = bgControl)}
           >
             <Trash2 className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* Bottom info */}
+      {/* Hex info — bottom center */}
       <div
-        className="flex flex-col items-center gap-2 transition-all duration-200"
-        style={{ opacity: showControls ? 1 : 0.55, transform: showControls ? 'translateY(0)' : 'translateY(4px)' }}
+        className="hidden sm:flex absolute bottom-10 left-0 right-0 flex-col items-center gap-2 transition-all duration-200"
+        style={{
+          opacity: showControls ? 1 : 0.55,
+          transform: showControls ? 'translateY(0)' : 'translateY(4px)',
+        }}
       >
         <span
           className="text-xs font-mono font-medium tracking-widest uppercase"
@@ -100,24 +154,18 @@ export default function ColorStrip({
           className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all duration-150"
           style={{
             color: fg,
-            background: fg === '#ffffff' ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.22)',
+            background: bgControl,
             opacity: showControls ? 1 : 0,
           }}
           onClick={copyHex}
-          onMouseEnter={e => (e.currentTarget.style.background = fg === '#ffffff' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.38)')}
-          onMouseLeave={e => (e.currentTarget.style.background = fg === '#ffffff' ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.22)')}
+          onMouseEnter={e => (e.currentTarget.style.background = bgControlHover)}
+          onMouseLeave={e => (e.currentTarget.style.background = bgControl)}
           aria-label="Copy hex code"
         >
           {copied ? (
-            <>
-              <Check className="w-3 h-3" />
-              Copied
-            </>
+            <><Check className="w-3 h-3" />Copied</>
           ) : (
-            <>
-              <Copy className="w-3 h-3" />
-              Copy
-            </>
+            <><Copy className="w-3 h-3" />Copy</>
           )}
         </button>
       </div>
